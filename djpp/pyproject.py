@@ -105,8 +105,7 @@ def convert(key, value, path, data):
         elif 'con' in value and 'cat' in value:
             concat = []
             for i in (value['con'], value['cat']):
-                if isinstance(i, dict):
-                    for k in i: concat.append(convert('a', i[k], path, data)['a'])
+                if isinstance(i, dict): concat.append(convert('a', i, path, data)['a'])
                 else: concat.append(str(i))
             value = ''.join(concat)
         else:
