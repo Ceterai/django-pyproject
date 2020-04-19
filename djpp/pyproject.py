@@ -68,15 +68,15 @@ def trim(data, upper):
     if apps:
         for app in apps:
             for key in apps[app]:
-                trimmed_data.update({key.upper() if upper else key: apps[app][key]})
+                trimmed_data['apps'][app].update({key.upper() if upper else key: apps[app][key]})
     docker = data['tool']['django'].get('docker')
     if docker:
         for key in docker:
-            trimmed_data.update({key.upper() if upper else key: docker[key]})
+            trimmed_data['docker'].update({key.upper() if upper else key: docker[key]})
     production = data['tool']['django'].get('production')
     if production:
         for key in production:
-            trimmed_data.update({key.upper() if upper else key: production[key]})
+            trimmed_data['production'].update({key.upper() if upper else key: production[key]})
     poetry = data['tool'].get('poetry')
     if poetry:
         for key in poetry:
