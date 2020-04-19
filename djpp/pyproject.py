@@ -100,14 +100,18 @@ def convert(key, value, path, data):
             if isinstance(value['insert'], dict):
                 value['insert'] = convert('a', value['insert'], path, data)['a']
             value = edit_var(key, value['insert'], data, value.get('pos'))
+            print('insert', value)
         elif 'poetry' in value:
             value = data['poetry'].get(value['poetry'])
+            print('poetry', value)
         elif 'con' in value and 'cat' in value:
             concat = []
             for i in (value['con'], value['cat']):
                 if isinstance(i, dict): concat.append(convert('a', i, path, data)['a'])
+                if isinstance(i, dict): print('---', convert('a', i, path, data)['a'])
                 else: concat.append(str(i))
             value = ''.join(concat)
+            print('concat', value)
         else:
             for k in value: value[k] = convert(k, value[k], path, data)
     return {key: value}
