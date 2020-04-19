@@ -102,20 +102,32 @@ You can override it with your own key like this:
 
 ### Concatenating & Poetry keys
 
-You can concat strings using 'concat' key with a list of strings.  
+You can concat strings using inline dict with 'con' and 'cat' keys.  
 Additionally, you can access values in keys from [tool.poetry] using 'poetry' key.  
 This example explains both features:
 
     [tool.poetry]
     name = "my-app"
-    version = "0.0.1"
 
     [tool.django]
-    project_name = { "concat" = [ { poetry = "name" }, ", v.", { poetry = "version" } ] }
+    project_name = { con = { poetry = "name" }, cat = ", v.1" }
 
 will result in
 
-    PROJECT_NAME = 'my-app, v.0.0.1'
+    PROJECT_NAME = 'my-app, v.1'
+
+Keep in mind, that due to toml python library limitations, enclosing too much inline dicts in each other may result in error.  
+To overcome this, use poetry-cat hybrid:
+
+    [tool.poetry]
+    name = "my-app"
+
+    [tool.django]
+    project_name = { poetry = "name", cat = ", v.1" }
+
+will result in
+
+    PROJECT_NAME = 'my-app, v.1'
 
 ### Apps
 

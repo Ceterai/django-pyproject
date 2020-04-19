@@ -59,41 +59,59 @@ set or is incorrect, and default path didn't work. Broken filepath: {path}")
     return data, path
 
 def trim(data, upper):
-    trimmed_data = {'poetry': {}}
+    trimmed_data = {'poetry': {}, 'docker': {}, 'production': {}, 'apps': {}}
     django = data['tool']['django']
     for key in django:
         if key not in ('production', 'docker', 'apps', 'poetry'):
             trimmed_data.update({key.upper() if upper else key: django[key]})
     apps = data['tool']['django'].get('apps')
-    for app in apps:
-        for key in apps[app]:
-            trimmed_data.update({key.upper() if upper else key: apps[app][key]})
+    if apps:
+        for app in apps:
+            trimmed_data['apps'].update({app: {}})
+            for key in apps[app]:
+                trimmed_data['apps'][app].update({key.upper() if upper else key: apps[app][key]})
     docker = data['tool']['django'].get('docker')
-    for key in docker:
-        trimmed_data.update({key.upper() if upper else key: docker[key]})
+    if docker:
+        for key in docker:
+            trimmed_data['docker'].update({key.upper() if upper else key: docker[key]})
     production = data['tool']['django'].get('production')
-    for key in production:
-        trimmed_data.update({key.upper() if upper else key: production[key]})
+    if production:
+        for key in production:
+            trimmed_data['production'].update({key.upper() if upper else key: production[key]})
     poetry = data['tool'].get('poetry')
-    for key in poetry:
-        trimmed_data['poetry'].update({key.upper() if upper else key: poetry[key]})
+    if poetry:
+        for key in poetry:
+            trimmed_data['poetry'].update({key: poetry[key]})
     return trimmed_data
     
 def convert(key, value, path, data):
     if isinstance(value, dict):
         if 'env' in value:
+            if isinstance(value['env'], dict):
+                value['env'] = convert('a', value['env'], path, data)['a']
+            if isinstance(value.get('default'), dict):
+                value['default'] = convert('a', value['default'], path, data)['a']
             value = os.environ.get(value['env'], value.get('default'))
         elif 'path' in value:
+            if isinstance(value['path'], dict):
+                value['path'] = convert('a', value['path'], path, data)['a']
             value = edit_path(value['path'], path)
         elif 'insert' in value:
+            if isinstance(value['insert'], dict):
+                value['insert'] = convert('a', value['insert'], path, data)['a']
             value = edit_var(key, value['insert'], data, value.get('pos'))
+        elif 'poetry' in value and 'cat' in value:
+            concat = [data['poetry'].get(value['poetry'])]
+            if isinstance(value['cat'], dict):
+                concat.append(convert('a', value['cat'], path, data)['a'])
+            else: concat.append(str(value['cat']))
+            value = ''.join(concat)
         elif 'poetry' in value:
             value = data['poetry'].get(value['poetry'])
-        elif 'concat' in value:
+        elif 'con' in value and 'cat' in value:
             concat = []
-            for i in value['concat']:
-                if isinstance(i, dict):
-                    for k in i: concat.append(convert('concat', i[k], path, data)['concat'])
+            for i in (value['con'], value['cat']):
+                if isinstance(i, dict): concat.append(convert('a', i, path, data)['a'])
                 else: concat.append(str(i))
             value = ''.join(concat)
         else:
