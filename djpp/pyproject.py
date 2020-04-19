@@ -81,25 +81,32 @@ def trim(data, upper):
     poetry = data['tool'].get('poetry')
     if poetry:
         for key in poetry:
-            trimmed_data['poetry'].update({key.upper() if upper else key: poetry[key]})
-    print(trimmed_data)
+            trimmed_data['poetry'].update({key: poetry[key]})
     return trimmed_data
     
 def convert(key, value, path, data):
     if isinstance(value, dict):
         if 'env' in value:
+            if isinstance(value['env'], dict):
+                value['env'] = convert('a', value['env'], path, data)['a']
+            if isinstance(value.get('default'), dict):
+                value['default'] = convert('a', value['default'], path, data)['a']
             value = os.environ.get(value['env'], value.get('default'))
         elif 'path' in value:
+            if isinstance(value['path'], dict):
+                value['path'] = convert('a', value['path'], path, data)['a']
             value = edit_path(value['path'], path)
         elif 'insert' in value:
+            if isinstance(value['insert'], dict):
+                value['insert'] = convert('a', value['insert'], path, data)['a']
             value = edit_var(key, value['insert'], data, value.get('pos'))
         elif 'poetry' in value:
             value = data['poetry'].get(value['poetry'])
-        elif 'concat' in value:
+        elif 'con' in value and 'cat' in value:
             concat = []
-            for i in value['concat']:
+            for i in (value['con'], value['cat']):
                 if isinstance(i, dict):
-                    for k in i: concat.append(convert('concat', i[k], path, data)['concat'])
+                    for k in i: concat.append(convert('a', i[k], path, data)['a'])
                 else: concat.append(str(i))
             value = ''.join(concat)
         else:
@@ -118,13 +125,9 @@ def edit_path(s, path):
     
 def edit_var(key, value, data, pos=None):
     result = data.get(key, [])
-    if isinstance(result, list):
-        if pos: result.insert(pos, value)
-        else: result.append(value)
-        return result
-    else:
-        print(key, value, result)
-    return [].append(value)
+    if pos: result.insert(pos, value)
+    else: result.append(value)
+    return result
     
 def load_all(path=None):
     """Loads all data from the pyproject file as a dict.
