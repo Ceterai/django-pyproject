@@ -100,6 +100,23 @@ You can override it with your own key like this:
 
     pyproject.load(docker_env='YOUR_KEY')
 
+### Concatenating & Poetry keys
+
+You can concat strings using 'concat' key with a list of strings.  
+Additionally, you can access values in keys from [tool.poetry] using 'poetry' key.  
+This example explains both features:
+
+    [tool.poetry]
+    name = "my-app"
+    version = "0.0.1"
+
+    [tool.django]
+    project_name = { "concat" = [ { poetry = "name" }, ", v.", { poetry = "version" } ] }
+
+will result in
+
+    PROJECT_NAME = 'my-app, v.0.0.1'
+
 ### Apps
 
 You can group settings that belong to an external app together for easier access.  

@@ -18,26 +18,26 @@ def load(path=None, upper=True, docker_env='DJANGO_ENV',
     if not module:
         module = os.getenv('DJANGO_SETTINGS_MODULE')
     data, path = check(path)
-    django_data = data['tool']['django']
+    django_data = trim(data, upper)
     settings = { 'DEBUG': True }
     for key in django_data:
-        if key not in ('production', 'docker', 'apps'):
-            settings.update(convert(key, django_data[key], path, data, upper))
+        if key not in ('production', 'docker', 'apps', 'poetry'):
+            settings.update(convert(key, django_data[key], path, django_data))
     apps = data.get('tool').get('django').get('apps')
     for app in apps:
         for key in apps[app]:
-            settings.update(convert(key, apps[app][key], path, data, upper))
+            settings.update(convert(key, apps[app][key], path, django_data))
     if os.getenv(docker_env):
         django_data = data.get('tool').get('django').get('docker')
         if django_data:
             for key in django_data:
-                settings.update(convert(key, django_data[key], path, data, upper))
+                settings.update(convert(key, django_data[key], path, django_data))
     if os.getenv(production_env[0]) == production_env[1]:
         settings['DEBUG'] = False
         django_data = data.get('tool').get('django').get('production')
         if django_data:
             for key in django_data:
-                settings.update(convert(key, django_data[key], path, data, upper))
+                settings.update(convert(key, django_data[key], path, django_data))
     for key in settings:
         setattr(sys.modules[module], key, settings[key])
     
@@ -57,10 +57,29 @@ set or is incorrect, and default path didn't work. Broken filepath: {path}")
     except KeyError:
         raise KeyError("Your pyproject.toml doesn't have a [tool.django] section.")
     return data, path
+
+def trim(data, upper):
+    trimmed_data = {'poetry': {}}
+    django = data['tool']['django']
+    for key in django:
+        if key not in ('production', 'docker', 'apps', 'poetry'):
+            trimmed_data.update({key.upper() if upper else key: django[key]})
+    apps = data['tool']['django'].get('apps')
+    for app in apps:
+        for key in apps[app]:
+            trimmed_data.update({key.upper() if upper else key: apps[app][key]})
+    docker = data['tool']['django'].get('docker')
+    for key in docker:
+        trimmed_data.update({key.upper() if upper else key: docker[key]})
+    production = data['tool']['django'].get('production')
+    for key in production:
+        trimmed_data.update({key.upper() if upper else key: production[key]})
+    poetry = data['tool'].get('poetry')
+    for key in poetry:
+        trimmed_data['poetry'].update({key.upper() if upper else key: poetry[key]})
+    return trimmed_data
     
-def convert(key, value, path, data, upper=True):
-    if upper:
-        key = key.upper()
+def convert(key, value, path, data):
     if isinstance(value, dict):
         if 'env' in value:
             value = os.environ.get(value['env'], value.get('default'))
@@ -68,8 +87,17 @@ def convert(key, value, path, data, upper=True):
             value = edit_path(value['path'], path)
         elif 'insert' in value:
             value = edit_var(key, value['insert'], data, value.get('pos'))
+        elif 'poetry' in value:
+            value = data['poetry'].get(value['poetry'])
+        elif 'concat' in value:
+            concat = []
+            for i in value['concat']:
+                if isinstance(i, dict):
+                    for k in i: concat.append(convert('concat', i[k], path, data)['concat'])
+                else: concat.append(str(i))
+            value = ''.join(concat)
         else:
-            for k in value: value[k] = convert(k, value[k], path, data, upper)
+            for k in value: value[k] = convert(k, value[k], path, data)
     return {key: value}
     
 def edit_path(s, path):
@@ -83,7 +111,7 @@ def edit_path(s, path):
     return path
     
 def edit_var(key, value, data, pos=None):
-    result = data['tool']['django'].get(key, [])
+    result = data.get(key, [])
     if pos: result.insert(pos, value)
     else: result.append(value)
     return result
