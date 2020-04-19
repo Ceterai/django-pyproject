@@ -65,18 +65,22 @@ def trim(data, upper):
         if key not in ('production', 'docker', 'apps', 'poetry'):
             trimmed_data.update({key.upper() if upper else key: django[key]})
     apps = data['tool']['django'].get('apps')
-    for app in apps:
-        for key in apps[app]:
-            trimmed_data.update({key.upper() if upper else key: apps[app][key]})
+    if apps:
+        for app in apps:
+            for key in apps[app]:
+                trimmed_data.update({key.upper() if upper else key: apps[app][key]})
     docker = data['tool']['django'].get('docker')
-    for key in docker:
-        trimmed_data.update({key.upper() if upper else key: docker[key]})
+    if docker:
+        for key in docker:
+            trimmed_data.update({key.upper() if upper else key: docker[key]})
     production = data['tool']['django'].get('production')
-    for key in production:
-        trimmed_data.update({key.upper() if upper else key: production[key]})
+    if production:
+        for key in production:
+            trimmed_data.update({key.upper() if upper else key: production[key]})
     poetry = data['tool'].get('poetry')
-    for key in poetry:
-        trimmed_data['poetry'].update({key.upper() if upper else key: poetry[key]})
+    if poetry:
+        for key in poetry:
+            trimmed_data['poetry'].update({key.upper() if upper else key: poetry[key]})
     return trimmed_data
     
 def convert(key, value, path, data):
