@@ -59,7 +59,7 @@ set or is incorrect, and default path didn't work. Broken filepath: {path}")
     return data, path
 
 def trim(data, upper):
-    trimmed_data = {'poetry': {}}
+    trimmed_data = {'poetry': {}, 'docker': {}, 'production': {}, 'apps': {}}
     django = data['tool']['django']
     for key in django:
         if key not in ('production', 'docker', 'apps', 'poetry'):
@@ -67,6 +67,7 @@ def trim(data, upper):
     apps = data['tool']['django'].get('apps')
     if apps:
         for app in apps:
+            trimmed_data['apps'].update({app: {}})
             for key in apps[app]:
                 trimmed_data['apps'][app].update({key.upper() if upper else key: apps[app][key]})
     docker = data['tool']['django'].get('docker')
@@ -81,6 +82,7 @@ def trim(data, upper):
     if poetry:
         for key in poetry:
             trimmed_data['poetry'].update({key.upper() if upper else key: poetry[key]})
+    print(trimmed_data)
     return trimmed_data
     
 def convert(key, value, path, data):
