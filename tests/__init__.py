@@ -1,0 +1,1 @@
+from djpp import pyproject
