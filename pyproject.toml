@@ -1,0 +1,22 @@
+[tool.poetry]
+name = "django-pyproject"
+version = "1.0.0"
+description = "A package for storing Django settings in pyproject.toml."
+authors = ["Ceterai <ceterai@protonmail.com>"]
+license = "MIT"
+readme = "README.md"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+packages = [
+    { include = "djpp" },
+]
+
+[tool.poetry.dependencies]
+python = "^3.8"
+
+[build-system]
+requires = ["poetry>=0.12"]
+build-backend = "poetry.masonry.api"
