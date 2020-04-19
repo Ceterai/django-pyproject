@@ -1,10 +1,11 @@
 [tool.poetry]
 name = "django-pyproject"
-version = "1.0.0"
+version = "1.0.1"
 description = "A package for storing Django settings in pyproject.toml."
 authors = ["Ceterai <ceterai@protonmail.com>"]
 license = "MIT"
 readme = "README.md"
+repository = "https://github.com/Ceterai/django-pyproject"
 classifiers = [
     "Programming Language :: Python :: 3",
     "License :: OSI Approved :: MIT License",

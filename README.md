@@ -14,7 +14,8 @@ Or through pip:
 
     pip install django-pyproject
 
-Neither Django nor Poetry are **not** required to use this package.
+- [PyPI page](https://pypi.org/project/django-pyproject/)
+- [GitHub page](https://github.com/Ceterai/django-pyproject/)
 
 ## Usage
 
