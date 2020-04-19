@@ -116,9 +116,13 @@ def edit_path(s, path):
     
 def edit_var(key, value, data, pos=None):
     result = data.get(key, [])
-    if pos: result.insert(pos, value)
-    else: result.append(value)
-    return result
+    if isinstance(result, list):
+        if pos: result.insert(pos, value)
+        else: result.append(value)
+        return result
+    else:
+        print(key, value, result)
+    return [].append(value)
     
 def load_all(path=None):
     """Loads all data from the pyproject file as a dict.
