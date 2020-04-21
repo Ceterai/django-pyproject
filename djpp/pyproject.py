@@ -35,21 +35,21 @@ def load(path=None, upper=True, docker_env='DJANGO_ENV',
     for key in new_data:
         if key not in ('production', 'docker', 'apps', 'poetry'):
             settings.update(convert(key, new_data[key], path, new_data))
-    apps = data.get('tool').get('django').get('apps')
+    apps = new_data.get('apps')
     for app in apps:
         for key in apps[app]:
             settings.update(convert(key, apps[app][key], path, new_data))
     if os.getenv(docker_env):
-        new_data = data.get('tool').get('django').get('docker')
-        if new_data:
-            for key in new_data:
-                settings.update(convert(key, new_data[key], path, new_data))
+        docker = new_data.get('docker')
+        if docker:
+            for key in docker:
+                settings.update(convert(key, docker[key], path, new_data))
     if os.getenv(production_env[0]) == production_env[1]:
         settings['DEBUG'] = False
-        new_data = data.get('tool').get('django').get('production')
-        if new_data:
-            for key in new_data:
-                settings.update(convert(key, new_data[key], path, new_data))
+        production = new_data.get('production')
+        if production:
+            for key in production:
+                settings.update(convert(key, production[key], path, new_data))
     for key in settings:
         setattr(sys.modules[module], key, settings[key])
 
