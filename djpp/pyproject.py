@@ -127,8 +127,8 @@ def convert(key, value, path, data):
                         concat.append(data['poetry'].get(value['poetry']))
             value = ''.join(concat)
         else:
-            for k in value:
-                value[k] = convert(k, value[k], path, data)
+            for i in value:
+                value[i] = conv_value(value[i], path, data)
     return {key: value}
 
 
