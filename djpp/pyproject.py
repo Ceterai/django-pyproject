@@ -2,6 +2,7 @@ import os
 import sys
 import toml
 import inspect as ins
+states = ('development', 'docker', 'production')
 
 
 def load(path=None, upper=True, docker_env='DJANGO_ENV',
@@ -32,24 +33,17 @@ def load(path=None, upper=True, docker_env='DJANGO_ENV',
     data, path = check(path)
     new_data = trim(data, upper)
     settings = {'DEBUG': True}
-    for key in new_data:
-        if key not in ('production', 'docker', 'apps', 'poetry'):
-            settings.update(convert(key, new_data[key], path, new_data))
-    apps = new_data.get('apps')
-    for app in apps:
-        for key in apps[app]:
-            settings.update(convert(key, apps[app][key], path, new_data))
-    if os.getenv(docker_env):
-        docker = new_data.get('docker')
-        if docker:
-            for key in docker:
-                settings.update(convert(key, docker[key], path, new_data))
     if os.getenv(production_env[0]) == production_env[1]:
         settings['DEBUG'] = False
-        production = new_data.get('production')
-        if production:
-            for key in production:
-                settings.update(convert(key, production[key], path, new_data))
+    for app in new_data['apps']:
+        for key in app:
+            if key not in states:
+                settings.update(convert(key, app[key], path, new_data))
+            elif (key == states[0] and settings['DEBUG']) or \
+                 (key == states[1] and os.getenv(docker_env)) or \
+                 (key == states[2] and not settings['DEBUG']):
+                for k in app[key]:
+                    settings.update(convert(key, app[key][k], path, new_data))
     for key in settings:
         setattr(sys.modules[module], key, settings[key])
 
@@ -73,25 +67,23 @@ set or is incorrect, and default path didn't work. Broken filepath: {path}")
 
 
 def trim(data, upper):
-    trimmed = {'poetry': {}, 'docker': {}, 'production': {}, 'apps': {}}
+    trimmed = {'poetry': {}, 'apps': [{}]}
     django = data['tool']['django']
     for key in django:
-        if key not in ('production', 'docker', 'apps', 'poetry'):
-            trimmed.update({up(key, upper): django[key]})
+        if key not in ('apps'):
+            trimmed[0].update({up(key, upper): django[key]})
     apps = data['tool']['django'].get('apps')
     if apps:
         for app in apps:
-            trimmed['apps'].update({app: {}})
+            trimmed['apps'].append({})
             for key in apps[app]:
-                trimmed['apps'][app].update({up(key, upper): apps[app][key]})
-    docker = data['tool']['django'].get('docker')
-    if docker:
-        for key in docker:
-            trimmed['docker'].update({up(key, upper): docker[key]})
-    production = data['tool']['django'].get('production')
-    if production:
-        for key in production:
-            trimmed['production'].update({up(key, upper): production[key]})
+                trimmed['apps'][-1].update({up(key, upper): apps[app][key]})
+    for app in trimmed['apps']:
+        for i in states:
+            part = app.get(i)
+            if part:
+                for key in part:
+                    app[i].update({up(key, upper): part[key]})
     poetry = data['tool'].get('poetry')
     if poetry:
         for key in poetry:
@@ -160,7 +152,7 @@ def edit_path(s, path):
 
 
 def edit_var(key, value, data, pos=None):
-    result = data.get(key, [])
+    result = data['apps'][0].get(key, [])
     if pos:
         result.insert(pos, value)
     else:
@@ -169,7 +161,7 @@ def edit_var(key, value, data, pos=None):
 
 
 def up(key, upper):
-    return key.upper() if upper else key
+    return key.upper() if upper and key not in states else key
 
 
 def load_all(path=None):

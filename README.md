@@ -84,16 +84,19 @@ If a value needs to be taken from an environment, use inline dict with key 'path
     email_host_password = { env = 'SECRET_PASSWORD' }
     secret_key = { env = 'SECRET_KEY', default = 'hello' }
 
-### Docker & Production
+### Development, Docker & Production
 
-If some of you settings have an alternative value for when DEBUG is off, specify them in [tool.django.production]. They will override regular settings if DEBUG is off.
+If some of you settings have an alternative value for when DEBUG is off, specify them in [tool.django.production]. They will override regular settings if DEBUG is off.  
+Similarly, settings under [tool.django.development] will work only if DEBUG i on.
+
+>It is important to note, that DEBUG is True by default.
 
 By default, django-pyproject applies production settings and sets DEBUG to False, if current evironment has a DJANGO_ENV variable, set to 'production'.  
 You can override it with your own key and value like this:
 
     pyproject.load(production_env=('YOUR_KEY', 'your_value'))
 
-If some of you settings have an alternative value for when the app is in container, specify them in [tool.django.docker]. They will override regular settings and will be overriden by production settings.
+If some of you settings have an alternative value for when the app is in container, specify them in [tool.django.docker]. They will override regular settings and development settings, and will be overriden by production settings.
 
 By default, django-pyproject applies docker settings, if current evironment has a DJANGO_ENV variable.  
 You can override it with your own key like this:
