@@ -117,17 +117,21 @@ will result in
     PROJECT_NAME = 'my-app, v.1'
 
 Keep in mind, that due to toml python library limitations, enclosing too much inline dicts in each other may result in error.  
-To overcome this, use poetry-cat hybrid:
+To overcome this, use con-poetry, con-poetry-cat and poetry-cat hybrids:
 
     [tool.poetry]
     name = "my-app"
 
     [tool.django]
-    project_name = { poetry = "name", cat = ", v.1" }
+    var1 = { con = "Hi! ", poetry = "name" }
+    var2 = { poetry = "name", cat = ", v.1" }
+    var3 = { con = "Hi! ", poetry = "name", cat = ", v.1" }
 
 will result in
 
-    PROJECT_NAME = 'my-app, v.1'
+    VAR1 = 'Hi! my-app'
+    VAR2 = 'my-app, v.1'
+    VAR3 = 'Hi! my-app, v.1'
 
 ### Apps
 
