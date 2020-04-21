@@ -35,7 +35,7 @@ def load(path=None, upper=True, docker_env='DJANGO_ENV',
     settings = {'DEBUG': True}
     if os.getenv(production_env[0]) == production_env[1]:
         settings['DEBUG'] = False
-    for app in new_data['apps']:
+    for app in new_data['apps'].copy():
         for key in app:
             if key not in states:
                 settings.update(convert(key, app[key], path, new_data))
@@ -43,7 +43,7 @@ def load(path=None, upper=True, docker_env='DJANGO_ENV',
                  (key == states[1] and os.getenv(docker_env)) or \
                  (key == states[2] and not settings['DEBUG']):
                 for k in app[key]:
-                    settings.update(convert(key, app[key][k], path, new_data))
+                    settings.update(convert(k, app[key][k], path, new_data))
     for key in settings:
         setattr(sys.modules[module], key, settings[key])
 
@@ -71,19 +71,19 @@ def trim(data, upper):
     django = data['tool']['django']
     for key in django:
         if key not in ('apps'):
-            trimmed[0].update({up(key, upper): django[key]})
-    apps = data['tool']['django'].get('apps')
+            trimmed['apps'][0].update({up(key, upper): django[key]})
+    apps = django.get('apps')
     if apps:
         for app in apps:
             trimmed['apps'].append({})
             for key in apps[app]:
                 trimmed['apps'][-1].update({up(key, upper): apps[app][key]})
     for app in trimmed['apps']:
-        for i in states:
-            part = app.get(i)
-            if part:
+        for state in states:
+            if app.get(state):
+                part = app.get(state).copy()
                 for key in part:
-                    app[i].update({up(key, upper): part[key]})
+                    app[state].update({up(key, upper): part[key]})
     poetry = data['tool'].get('poetry')
     if poetry:
         for key in poetry:
