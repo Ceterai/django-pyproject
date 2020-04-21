@@ -115,7 +115,7 @@ def convert(key, value, path, data):
             if isinstance(value['insert'], dict):
                 value['insert'] = conv_value(value['insert'], path, data)
             value = edit_var(key, value['insert'], data, value.get('pos'))
-        elif conv_check(value, ('con', 'poetry', 'cat',), amount=2):
+        elif conv_check(value, ('con', 'poetry', 'cat',)):
             concat = []
             for i in ('con', 'poetry', 'cat'):
                 if value.get(i) is not None:
@@ -133,8 +133,8 @@ def convert(key, value, path, data):
 
 
 def conv_check(d, main, amount=1, opt=tuple(), n=0):
-    for i in main:
-        if i in d:
+    for key in main:
+        if key in d:
             n += 1
     if n < amount:
         return False
@@ -145,7 +145,7 @@ def conv_check(d, main, amount=1, opt=tuple(), n=0):
 
 
 def conv_value(value, path, data):
-    return convert('a', value['env'], path, data)['a']
+    return convert('a', value, path, data)['a']
 
 
 def edit_path(s, path):
